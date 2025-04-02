@@ -20,7 +20,7 @@ User user = (User)Database.query('SELECT ' + fieldsToQuery + ' FROM User WHERE I
 // Set all checkbox fields to false and other fields to null
 for (String fieldName : fieldMap.keySet()) {
     Schema.DescribeFieldResult fieldDesc = fieldMap.get(fieldName).getDescribe();
-    if (fieldDesc.isUpdateable()) {
+    if (fieldDesc.isUpdateable() && fieldName != 'FirstName' && fieldName != 'LastName') {
         if (fieldDesc.getType() == Schema.DisplayType.Boolean) {
             user.put(fieldName, false);
         } else if (!fieldDesc.isNillable()) {
