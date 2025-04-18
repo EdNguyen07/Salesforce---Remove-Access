@@ -1,0 +1,23 @@
+// Query all inactive users who still have a Fed ID
+List<User> users = [
+    SELECT Id ,name,isactive, FederationIdentifier, EmployeeNumber 
+    FROM User WHERE IsActive = FALSE AND (FederationIdentifier  != null OR EmployeeNumber != null)
+];
+
+if (users.isEmpty()) {
+    System.debug('No inactive users found with Federation Identifier or Employee Number.');
+    return;
+}
+else{
+    System.debug('Inactive users with Federation Identifier or Employee Number:');
+    for(user u: users){
+        String logLine = '\n' +
+        'Name: ' + u.Name + '\n' +
+        'IsActive: ' + u.IsActive + '\n' +
+        'Federation ID: ' + u.FederationIdentifier + '\n' +
+        'Employee Number: ' + u.EmployeeNumber + '\n' +
+        '---------------------------';
+    System.debug(logLine);
+    }
+    
+}
