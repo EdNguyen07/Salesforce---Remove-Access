@@ -1,0 +1,85 @@
+After several failed attempts using written instructions, this setup was successfully completed by following the YouTube guide: YouTube Video - How to Setup Third Party Account Link in Salesforce
+
+🧩 Objective
+Link a Gmail account (via Google OAuth) to a Salesforce user using the Third-Party Account Link feature.
+
+🔧 Prerequisites
+Google Developer Console Account
+
+Salesforce Developer Org
+
+📝 Steps to Success
+1. Create OAuth Credentials in Google Cloud Console
+Go to console.cloud.google.com
+
+Create a new project or select an existing one.
+
+Navigate to:
+APIs & Services → OAuth consent screen
+
+User Type: External (if you're using a personal Gmail)
+
+Fill in required fields (app name, email, etc.)
+
+Add test users (your Gmail address)
+
+Go to Credentials → Click Create Credentials → OAuth Client ID
+
+App type: Web Application
+
+Authorized redirect URIs:
+
+ruby
+Copy
+Edit
+https://<your-salesforce-domain>.my.salesforce.com/services/authcallback/Gmail
+Save the Client ID and Secret
+
+2. Create an Auth. Provider in Salesforce
+Go to Setup → Auth. Providers → New:
+
+Provider Type: Google
+
+Name: Gmail
+
+Consumer Key: (from Google OAuth)
+
+Consumer Secret: (from Google OAuth)
+
+Authorize Endpoint URL: https://accounts.google.com/o/oauth2/v2/auth
+
+Token Endpoint URL: https://oauth2.googleapis.com/token
+
+Default Scopes: openid email profile
+
+Callback URL: (auto-filled after saving, use this in Google console!)
+
+3. Create Third-Party Account Link (Manually)
+Go to the User Record in Salesforce
+
+Under Third-Party Account Links, click New
+
+Provider: Gmail (Auth. Provider you created)
+
+Name: Gmail
+
+Save
+
+🧪 Testing
+Make sure you're logged into Gmail
+
+Go back to the User's Third-Party Account Links section and test the connection
+
+If successful, you’ll see the link established!
+
+🔍 Common Pitfalls
+⚠️ NO_REGISTRATION_HANDLER error → You're trying to use this as SSO, but the Auth. Provider is for linking accounts, not login. You don't need a registration handler.
+
+✅ Don't forget to add your Gmail to test users in the OAuth consent screen
+
+🔁 Update the redirect URI in Google if you create a new Auth. Provider
+
+🏁 Final Notes
+Salesforce cannot directly log you in using Gmail unless you're setting up full SSO, but Third-Party Account Link enables linking Gmail credentials for secure connections and integrations.
+
+Video followed: YouTube Setup Guide
