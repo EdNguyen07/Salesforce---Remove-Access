@@ -10,6 +10,46 @@ List<Id> userIds = new List<Id>{
     
 //***********************************************************************************************//
 
+// 1. Permission Sets from Managed Packages
+List<PermissionSetAssignment> permSetAssignments = [
+    SELECT Id, AssigneeId, Assignee.Name, PermissionSet.Name
+    FROM PermissionSetAssignment
+    WHERE AssigneeId IN :userIds 
+];
+
+// 2. Permission Set Licenses (often linked to installed packages)
+List<PermissionSetLicenseAssign> licenseAssignments = [
+    SELECT Id, AssigneeId, Assignee.Name, PermissionSetLicense.MasterLabel
+    FROM PermissionSetLicenseAssign
+    WHERE AssigneeId IN :userIds 
+];
+
+// 3. General info from installed package licenses (org-wide, not per-user, for awareness)
+List<PackageLicense> allPackages = [
+    SELECT Id, NamespacePrefix, AllowedLicenses, UsedLicenses
+    FROM PackageLicense
+];
+
+// Output results
+System.debug('--- Managed Package Permission Sets ---');
+for (PermissionSetAssignment psa : permSetAssignments) {
+    System.debug('User: ' + psa.Assignee.Name + ' | PermSet: ' + psa.PermissionSet.Name );
+}
+
+System.debug('--- Managed Package Licenses Assigned ---');
+for (PermissionSetLicenseAssign psla : licenseAssignments) {
+    System.debug('User: ' + psla.Assignee.Name + ' | PSL: ' + psla.PermissionSetLicense.MasterLabel );
+}
+
+System.debug('--- Installed Packages in Org ---');
+for (PackageLicense pkg : allPackages) {
+    System.debug('Package: ' + pkg.NamespacePrefix + ' | Used/Total: ' + pkg.UsedLicenses + '/' + pkg.AllowedLicenses);
+}    
+
+Map<Id, User> userNameMap = new Map<Id, User>(
+    [SELECT Id, FirstName, LastName FROM User WHERE Id IN :userIds]
+);
+    
 // Check third party account links
 for (Id uid : userIds) {
     List<ThirdPartyAccountLink> links = [
@@ -18,11 +58,15 @@ for (Id uid : userIds) {
         WHERE UserId = :uid
     ];
     
+    String fullName = userNameMap.containsKey(uid)
+        ? userNameMap.get(uid).FirstName + ' ' + userNameMap.get(uid).LastName
+        : 'Unknown';
+    
     if (links.isEmpty()) {
-        System.debug('No third-party account links for user: ' + uid);
+         System.debug('No third-party account links for user: ' + fullName + ' (' + uid + ')');
     } else {
         for (ThirdPartyAccountLink link : links) {
-            System.debug('User ' + uid + ' has Third-Party Link via: ' + link.SsoProviderName);
+            System.debug('User ' + fullName + ' (' + uid + ') has Third-Party Link via: ' + link.SsoProviderName);
         }
     }
 }
@@ -128,5 +172,3 @@ List<User> updatedUsers = [
 for (User u : updatedUsers) {
     System.debug('Access removed for User - ID: ' + u.Id + ' | Name: ' + u.Name + ' | New Profile: ' + u.Profile.Name);
 }
-
-
