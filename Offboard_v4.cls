@@ -51,45 +51,28 @@ Map<Id, User> userNameMap = new Map<Id, User>(
 );
     
 // === Integrated ThirdPartyAccountLink revoke + delete ===
-for (Id uid : userIds) {
-    List<ThirdPartyAccountLink> links = [
 List<ThirdPartyAccountLink> allLinks = [
-        SELECT Id, SsoProviderName 
     SELECT Id, SsoProvider.Id, Provider, RemoteIdentifier, SsoProviderName, UserId
-        FROM ThirdPartyAccountLink 
     FROM ThirdPartyAccountLink
-        WHERE UserId = :uid
     WHERE UserId IN :userIds
-    ];
 ];
-    
+
 for (ThirdPartyAccountLink link : allLinks) {
-    String fullName = userNameMap.containsKey(uid)
     String fullName = userNameMap.containsKey(link.UserId)
-        ? userNameMap.get(uid).FirstName + ' ' + userNameMap.get(uid).LastName
         ? userNameMap.get(link.UserId).FirstName + ' ' + userNameMap.get(link.UserId).LastName
         : 'Unknown';
-        : 'Unknown';
-    
+
     try {
-    if (links.isEmpty()) {
         Auth.AuthToken.revokeAccess(
-         System.debug('No third-party account links for user: ' + fullName + ' (' + uid + ')');
             link.SsoProvider.Id,
-    } else {
             link.Provider,
-        for (ThirdPartyAccountLink link : links) {
             link.UserId,
-            System.debug('User ' + fullName + ' (' + uid + ') has Third-Party Link via: ' + link.SsoProviderName);
             link.RemoteIdentifier
-        }
         );
         System.debug('Revoked third-party token for user: ' + fullName + ' via ' + link.SsoProviderName);
     } catch (Exception e) {
         System.debug('Failed to revoke token for user: ' + fullName + ' - ' + e.getMessage());
     }
-    }
-}
 }
     
 List<User> users = [
